@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciQuiz - Desafío Científico</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-xl border border-slate-700 transition-all duration-300">
+        
+        <div id="home-screen" class="text-center space-y-6">
+            <h1 class="text-4xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                SCIQUIZ
+            </h1>
+            <p class="text-slate-400">Demuestra tu potencial respondiendo preguntas sobre el universo, la vida y la materia.</p>
+            <div id="home-highscore" class="text-xs text-cyan-400 font-semibold uppercase tracking-widest hidden bg-slate-900/40 py-2 rounded-lg">
+                Récord Actual: <span id="home-highscore-val">0</span> pts
+            </div>
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer">
+                Iniciar Desafío
+            </button>
+        </div>
+
+        <div id="game-screen" class="hidden space-y-6">
+            <div class="flex justify-between items-center text-sm font-semibold bg-slate-900/50 p-3 rounded-lg">
+                <span id="category-badge" class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Categoría</span>
+                <div class="flex items-center space-x-4">
+                    <span id="timer" class="text-amber-400">⏱️ 15s</span>
+                    <span id="lives" class="text-rose-500">❤️ ❤️ ❤️</span>
+                </div>
+            </div>
+
+            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-gradient-to-r from-cyan-400 to-blue-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <h2 id="question-text" class="text-xl font-bold text-slate-100 min-h-[60px] flex items-center">
+                Cargando pregunta...
+            </h2>
+
+            <div id="options-container" class="grid grid-cols-1 gap-3"></div>
+        </div>
+
+        <div id="end-screen" class="hidden text-center space-y-6">
+            <h2 class="text-3xl font-extrabold text-slate-100">¡Juego Terminado!</h2>
+            <div class="flex justify-center gap-4">
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1">
+                    <p class="text-slate-400 text-xs uppercase tracking-wider">Tu Puntaje</p>
+                    <p id="final-score" class="text-4xl font-black text-cyan-400 mt-1">0</p>
+                </div>
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1">
+                    <p class="text-slate-400 text-xs uppercase tracking-wider">Mejor Récord</p>
+                    <p id="best-score" class="text-4xl font-black text-amber-400 mt-1">0</p>
+                </div>
+            </div>
+            <p id="game-summary" class="text-slate-300 px-4"></p>
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
+                Jugar de Nuevo
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const questionBank = [
+            // ASTRONOMÍA
+            { category: "Astronomía", q: "¿Cuál es el planeta más grande del sistema solar?", options: ["Saturno", "Júpiter", "Neptuno", "Tierra"], correct: 1 },
+            { category: "Astronomía", q: "¿Qué estrella se encuentra en el centro de nuestro sistema solar?", options: ["Sirio", "Alfa Centauri", "El Sol", "Betelgeuse"], correct: 2 },
+            { category: "Astronomía", q: "¿Cuánto tarda la luz del Sol en llegar a la Tierra aproximadamente?", options: ["8 segundos", "8 minutos", "8 horas", "1 día"], correct: 1 },
+            { category: "Astronomía", q: "¿Qué galaxia es la vecina gigante más cercana a la Vía Láctea?", options: ["Andrómeda", "Magallanes", "Triángulo", "Sombrero"], correct: 0 },
+            { category: "Astronomía", q: "¿Cuál es el planeta más cercano al Sol?", options: ["Venus", "Marte", "Mercurio", "Tierra"], correct: 2 },
+            { category: "Astronomía", q: "¿Qué planeta es conocido como el 'Planeta Rojo'?", options: ["Júpiter", "Marte", "Venus", "Saturno"], correct: 1 },
+            { category: "Astronomía", q: "¿Cuál es el componente principal de la atmósfera de Venus?", options: ["Oxígeno", "Nitrógeno", "Dióxido de Carbono", "Hidrógeno"], correct: 2 },
+            { category: "Astronomía", q: "¿Qué instrumento se usa para observar objetos lejanos en el espacio?", options: ["Microscopio", "Telescopio", "Periscolpio", "Espectrómetro"], correct: 1 },
+            { category: "Astronomía", q: "¿Cómo se llama la fuerza que mantiene a los planetas en órbita?", options: ["Magnetismo", "Fuerza Nuclear", "Gravedad", "Fricción"], correct: 2 },
+            { category: "Astronomía", q: "¿Cuál es el planeta con los anillos más vistosos y grandes?", options: ["Urano", "Neptuno", "Saturno", "Júpiter"], correct: 2 },
+
+            // BIOLOGÍA
+            { category: "Biología", q: "¿Cuál es la unidad básica estructural y funcional de los seres vivos?", options: ["Tejido", "Órgano", "Célula", "Átomo"], correct: 2 },
+            { category: "Biología", q: "¿Qué molécula contiene las instrucciones genéticas de los organismos?", options: ["ARN", "ATP", "Lípidos", "ADN"], correct: 3 },
+            { category: "Biología", q: "¿Cómo se llama el proceso por el cual las plantas producen su alimento?", options: ["Respiración", "Fotosíntesis", "Mitosis", "Fermentación"], correct: 1 },
+            { category: "Biología", q: "¿Qué gas absorben las plantas principalmente durante la fotosíntesis?", options: ["Oxígeno", "Dióxido de Carbono", "Nitrógeno", "Metano"], correct: 1 },
+            { category: "Biología", q: "¿Qué órgano del cuerpo humano bombea la sangre por todo el organismo?", options: ["Cerebro", "Pulmón", "Hígado", "Corazón"], correct: 3 },
+            { category: "Biología", q: "¿Cuál es el hueso más largo del cuerpo humano?", options: ["Fémur", "Radio", "Tibia", "Cráneo"], correct: 0 },
+            { category: "Biología", q: "¿Qué pigmento le da el color verde a las hojas de las plantas?", options: ["Hemoglobina", "Melanina", "Clorofila", "Caroteno"], correct: 2 },
+            { category: "Biología", q: "¿Qué tipo de animales son los que tienen sangre caliente y maman al nacer?", options: ["Reptiles", "Mamíferos", "Anfibios", "Aves"], correct: 1 },
+            { category: "Biología", q: "¿Qué sistema del cuerpo humano se encarga de defendernos contra enfermedades?", options: ["Inmune", "Digestivo", "Nervioso", "Endocrino"], correct: 0 },
+            { category: "Biología", q: "¿Dónde ocurre principalmente la digestión y absorción de nutrientes?", options: ["Estómago", "Hígado", "Intestino Delgado", "Esófago"], correct: 2 },
+
+            // QUÍMICA
+            { category: "Química", q: "¿Cuál es el símbolo químico del agua?", options: ["CO2", "H2O", "NaCl", "HO"], correct: 1 },
+            { category: "Química", q: "¿Cuál es el elemento más abundante en el universo?", options: ["Helio", "Oxígeno", "Hidrógeno", "Carbono"], correct: 2 },
+            { category: "Química", q: "¿Qué elemento químico es esencial para la vida orgánica y base de los diamantes?", options: ["Hierro", "Carbono", "Calcio", "Sodio"], correct: 1 },
+            { category: "Química", q: "🔬 ¿Qué partícula subatómica tiene carga eléctrica negativa?", options: ["Protón", "Neutrón", "Electrón", "Quark"], correct: 2 },
+            { category: "Química", q: "¿Cuál es el estado de la materia con volumen y forma definida?", options: ["Líquido", "Gaseoso", "Plasma", "Sólido"], correct: 3 },
+            { category: "Química", q: "¿Cuál es el símbolo químico del Oro?", options: ["Or", "Ag", "Au", "Fe"], correct: 2 },
+            { category: "Química", q: "¿Qué sustancia tiene un pH menor a 7?", options: ["Una base", "Un ácido", "Una sustancia neutra", "Agua destilada"], correct: 1 },
+            { category: "Química", q: "¿Cómo se llama la tabla que organiza todos los elementos químicos?", options: ["Tabla de Pascal", "Tabla Periódica", "Tabla de Newton", "Tabla de Equivalencias"], correct: 1 },
+            { category: "Química", q: "¿Qué gas es indispensable para que ocurra una combustión (fuego)?", options: ["Nitrógeno", "Argón", "Oxígeno", "Dióxido de Carbono"], correct: 2 },
+            { category: "Química", q: "¿Cuál es la fórmula química de la sal común de mesa?", options: ["HCl", "NaOH", "NaHCO3", "NaCl"], correct: 3 }
+        ];
+
+        let gameQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let lives = 3;
+        let timerInterval;
+        let timeLeft = 15;
+        let canAnswer = true;
+
+        // Mostrar récord en pantalla de inicio si existe
+        function showHighScoreHome() {
+            const highScore = localStorage.getItem("sciquiz_highscore") || 0;
+            if (highScore > 0) {
+                document.getElementById("home-highscore-val").innerText = highScore;
+                document.getElementById("home-highscore").classList.remove("hidden");
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            document.getElementById("home-screen").classList.add("hidden");
+            document.getElementById("end-screen").classList.add("hidden");
+            document.getElementById("game-screen").classList.remove("hidden");
+            
+            gameQuestions = shuffle([...questionBank]);
+            currentQuestionIndex = 0;
+            score = 0;
+            lives = 3;
+            
+            updateLivesUI();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= gameQuestions.length || lives <= 0) {
+                endGame();
+                return;
+            }
+
+            canAnswer = true;
+            timeLeft = 15;
+            document.getElementById("timer").innerText = `⏱️ ${timeLeft}s`;
+            document.getElementById("timer").className = "text-amber-400";
+            
+            const progress = (currentQuestionIndex / gameQuestions.length) * 100;
+            document.getElementById("progress-bar").style.width = `${progress}%`;
+
+            const currentQuestion = gameQuestions[currentQuestionIndex];
+            
+            document.getElementById("category-badge").innerText = currentQuestion.category;
+            document.getElementById("question-text").innerText = currentQuestion.q;
+            
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = "";
+            
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement("button");
+                button.innerText = option;
+                button.className = "w-full text-left bg-slate-700 hover:bg-slate-600 border border-slate-600 p-4 rounded-xl font-medium transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer block";
+                button.onclick = () => checkAnswer(index, button);
+                optionsContainer.appendChild(button);
+            });
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").innerText = `⏱️ ${timeLeft}s`;
+                
+                if (timeLeft <= 5) {
+                    document.getElementById("timer").className = "text-rose-500 font-bold animate-pulse";
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selectedIndex, selectedButton) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timerInterval);
+
+            const currentQuestion = gameQuestions[currentQuestionIndex];
+            const optionsContainer = document.getElementById("options-container");
+            const buttons = optionsContainer.getElementsByTagName("button");
+
+            if (selectedIndex === currentQuestion.correct) {
+                selectedButton.className = "w-full text-left bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500 p-4 rounded-xl font-bold transition-all block shadow-lg shadow-emerald-500/10";
+                score += 10 + timeLeft; 
+            } else {
+                selectedButton.className = "w-full text-left bg-rose-500/20 text-rose-400 border-2 border-rose-500 p-4 rounded-xl font-bold transition-all block shadow-lg shadow-rose-500/10";
+                buttons[currentQuestion.correct].className = "w-full text-left bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 p-4 rounded-xl font-semibold transition-all block";
+                lives--;
+                updateLivesUI();
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 1300);
+        }
+
+        function handleTimeout() {
+            if (!canAnswer) return;
+            canAnswer = false;
+            
+            lives--;
+            updateLivesUI();
+            
+            const currentQuestion = gameQuestions[currentQuestionIndex];
+            const optionsContainer = document.getElementById("options-container");
+            const buttons = optionsContainer.getElementsByTagName("button");
+            
+            buttons[currentQuestion.correct].className = "w-full text-left bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 p-4 rounded-xl font-semibold transition-all block";
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 1300);
+        }
+
+        function updateLivesUI() {
+            const livesContainer = document.getElementById("lives");
+            livesContainer.innerHTML = "❤️ ".repeat(Math.max(0, lives));
+            if (lives <= 0) {
+                livesContainer.innerHTML = "💀 KO";
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            
+            // Llenar barra al 100% si se completó todo con éxito
+            if (lives > 0) document.getElementById("progress-bar").style.width = "100%";
+
+            // Manejo del récord local en el navegador
+            let currentHighScore = localStorage.getItem("sciquiz_highscore") || 0;
+            if (score > currentHighScore) {
+                localStorage.setItem("sciquiz_highscore", score);
+                currentHighScore = score;
+            }
+
+            document.getElementById("game-screen").classList.add("hidden");
+            document.getElementById("end-screen").classList.remove("hidden");
+            
+            document.getElementById("final-score").innerText = score;
+            document.getElementById("best-score").innerText = currentHighScore;
+            
+            let summaryText = "";
+            if (lives <= 0) {
+                summaryText = "¡Te quedaste sin vidas! Pero aprendiste bastante en el camino. Vuelve a intentarlo para superar tu marca.";
+            } else if (score > 400) {
+                summaryText = "¡Impresionante! Eres una eminencia científica. Has dominado el cuestionario a la velocidad de la luz.";
+            } else {
+                summaryText = "¡Excelente juego! Completaste el desafío con un gran desempeño científico.";
+            }
+            document.getElementById("game-summary").innerText = summaryText;
+        }
+
+        // Ejecutar al cargar la página por primera vez
+        showHighScoreHome();
+    </script>
+</body>
+                                                                        </html>
