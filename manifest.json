@@ -13,9 +13,10 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "./index.html",
+  "start_url": "/Desaf-o-cient-fico/",
+  "scope": "/Desaf-o-cient-fico/",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a365d",
-  "display": "standalone",
   "orientation": "portrait"
 }
