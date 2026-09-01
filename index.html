@@ -8,7 +8,21 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
         body { font-family: 'Poppins', sans-serif; }
-    </style>
+  </style> 
+    <!-- Configuración para App (PWA) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a365d">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado con éxito', reg))
+        .catch(err => console.error('Error al registrar Service Worker', err));
+    });
+  }
+</script>
+    
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
